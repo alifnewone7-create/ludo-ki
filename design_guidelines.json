@@ -1,0 +1,145 @@
+{
+  "app_name": "LudoOps Admin",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "A covert, tactical command center optimized for rapid scanning and instantaneous control over live matches.",
+  "color": {
+    "surface": "#0F1115",
+    "onSurface": "#F2F4F7",
+    "surfaceSecondary": "#1C1F26",
+    "onSurfaceSecondary": "#D1D5DB",
+    "surfaceTertiary": "#282C35",
+    "onSurfaceTertiary": "#9CA3AF",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#0F1115",
+    "brand": "#F56A25",
+    "brandPrimary": "#FF7A33",
+    "onBrandPrimary": "#1A0902",
+    "brandSecondary": "#CC5416",
+    "onBrandSecondary": "#F2F4F7",
+    "brandTertiary": "#4D2C1B",
+    "onBrandTertiary": "#FFC4A6",
+    "success": "#26B366",
+    "onSuccess": "#052412",
+    "warning": "#F5A623",
+    "onWarning": "#332103",
+    "error": "#E04343",
+    "onError": "#3D0E0E",
+    "info": "#4B5563",
+    "onInfo": "#F3F4F6",
+    "border": "#2A2F3A",
+    "borderStrong": "#3D4454",
+    "divider": "#1F232B",
+    "ludoRed": "#FF5A5A",
+    "ludoGreen": "#4ADE80",
+    "ludoYellow": "#FBBF24",
+    "ludoBlue": "#60A5FA"
+  },
+  "typography": {
+    "displayFontFamily": "Barlow Condensed",
+    "textFontFamily": "DM Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Use tight spacing for information density. Group metrics closely. Use safe-area clearance at the bottom for sticky CTAs.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": "false",
+    "do's": [
+      "Use solid surfaceSecondary and surfaceTertiary for elevation",
+      "Rely on border outlines for separation instead of shadows or blur"
+    ],
+    "dont's": [
+      "No glassmorphism, blur, or transparency to maintain maximum operational clarity and performance"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-blur",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Live Matches",
+      "purpose": "A high-density dashboard monitoring all active Ludo matches connected via Firebase.",
+      "states": {
+        "loading": "Centered dark spinner with 'Establishing Firebase connection...'",
+        "empty": "Illustration of an empty dark stadium with 'No active matches right now.'",
+        "error": "Red error text 'Connection lost' with a Retry connection button."
+      },
+      "layout": "Header: Global Firebase connection status indicator (green dot = connected, red = disconnected). Body: Vertical list of active match cards. Each card displays oversized Match Code, current player count, small pill indicators for active player colors, and a live pulse indicator. Cards should use 'surfaceSecondary' with a 1pt 'border' for sharp separation. Do not use shadows."
+    },
+    {
+      "name": "Match Control",
+      "purpose": "The surgical command center to covertly manipulate a specific live match.",
+      "states": {
+        "loading": "Skeleton of the player grid.",
+        "empty": "Not applicable (accessed via active match).",
+        "error": "Error message if match data stops syncing."
+      },
+      "layout": "Header: Back button, Match Code, and a 'Live' badge. Section 1 (Live State): A horizontal scroll or compact stream of recent dice rolls and current turn indicator. Section 2 (Player Grid): 2x2 or 1-col grid of player blocks. Each block shows the player's Ludo color, their current progress, and quick-action segmented controls to 'Force Dice 1-6'. Section 3 (Manipulation Panel): Stacked dropdowns or pill selectors to set 'Rank 1 Winner' and 'Rank 2'. Bottom: Sticky CTA container at the screen root (safe-area cleared) containing 'Apply Manipulation' (brandPrimary) and 'Clear Manipulation' (surfaceTertiary/error)."
+    },
+    {
+      "name": "Match History",
+      "purpose": "Audit log of finished matches, showing final outcomes and manipulated ranks.",
+      "states": {
+        "loading": "List skeleton.",
+        "empty": "Text 'No finished matches yet.'",
+        "error": "Retry fetching history button."
+      },
+      "layout": "Simple, dense list. Each row contains Match Code, Timestamp, and a compact view of Rank 1 and Rank 2 winners with their respective Ludo colors. Use 'divider' between rows instead of wrapping in cards."
+    }
+  ],
+  "images": {
+    "empty_state_stadium": {
+      "url": "https://images.unsplash.com/photo-1595030044556-acfaa61edc0f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njd8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHN0YWRpdW0lMjBkYXJrJTIwbW9kZXxlbnwwfHx8fDE3ODgxODY0OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Empty stadium under night lights"
+    },
+    "radar_background": {
+      "url": "https://images.unsplash.com/photo-1612521564730-62fc7691cd85?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcmFkYXIlMjBncmlkJTIwcGF0dGVybnxlbnwwfHx8fDE3ODgxODY0OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Abstract dark radar grid pattern"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Follow the 'Dark-First Utility' principles strictly. The app should feel like a tactical operations center, not a generic SaaS dashboard. Avoid pure black backgrounds.",
+    "Implement Ludo player colors (Red, Green, Yellow, Blue) using the specific Hex codes provided in the JSON (`ludoRed`, `ludoGreen`, etc.) to ensure they maintain contrast against the dark surfaces.",
+    "No glassmorphism. Rely on borders (`border`, `borderStrong`) and tonal surface shifts (`surfaceSecondary`, `surfaceTertiary`) to separate elements. This ensures optimal performance for live data.",
+    "For typography, use the condensed display font ('Barlow Condensed') for Match Codes, metrics, and large headers. Use the text font ('DM Sans') for body text and labels.",
+    "On the Match Control screen, the 'Apply Manipulation' button must be sticky at the bottom of the screen (inside a safe-area view), remaining visible regardless of scroll position.",
+    "Ensure Firebase connection status is always visible at a glance in the UI, as real-time sync is critical to the app's functionality."
+  ],
+  "haptics": {
+    "tab_press": "light",
+    "apply_manipulation": "medium",
+    "clear_manipulation": "heavy",
+    "force_dice_select": "light"
+  }
+}
