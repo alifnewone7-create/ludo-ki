@@ -54,4 +54,5 @@ export const GAME_TYPES: Record<number, string> = {
   2: "TEAM UP",
   3: "QUICK",
   4: "VS COMPUTER",
+  5: "HEXA 5/6",
 };

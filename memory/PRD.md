@@ -37,14 +37,40 @@ winners{pos:{color,name}}, control{rank1,rank2,force{color:0-6}}
 
 ## Implemented (June 2026)
 - [x] Android game wired to Firebase (REST) with subtle dice manipulation — needs real-device build to verify
-- [x] Admin panel: live dashboard, match control, history — fully tested (iteration_1.json, 7/7 pass)
-- [x] Fonts Barlow Condensed + DM Sans, dark theme per design_guidelines.json
-- [x] Android Gradle upgraded (Gradle 8.7 / AGP 8.3.2 / compileSdk 34 / Java 17 / namespace) to build on JDK 21
-- [x] Manipulation reworked to be fully NATURAL: subtle luck bias via best/worst-of-two natural rolls (favored 32%/20% nudge, last-place 22% down-nudge, mids untouched) + hard cap of max 2 consecutive 6s per color (kills the abnormal 8/9-six streak). No optimal-move solver anymore.
-- [x] Admin can now set a unique finishing POSITION (1st..Nth) for EVERY player, not just 1st/2nd. control/ranks/{color}=pos. Tested iteration_2 (9/9 pass).
+- [x] Admin panel: live dashboard, match control, history — tested (iteration_1/2)
+- [x] Android Gradle upgraded (Gradle 8.7 / AGP 8.3.2 / compileSdk 34 / Java 17) to build on JDK 21
+- [x] Manipulation fully NATURAL: mild best/worst-of-two bias + hard cap of 2 consecutive 6s
+- [x] Admin sets unique finishing POSITION per player (control/ranks/{color}=pos)
+- [x] NEW: Playable 5/6-player HEXAGONAL Ludo game inside the Expo app (SVG board, 6 colors blue/yellow/purple/red/green/orange, dice, capture, safe/star cells, home columns, bots + pass-and-play). Same Firebase schema + same subtle manipulation, so it shows in the admin panel and is controllable. Tested iteration_3 (10/10 pass).
+- [x] Routing: launcher '/' → Play (5/6 hex game) or Admin ('/admin' tabs). Game at /play/setup + /play/game.
 
-## Known Limitations
-- Board is classic 4-quadrant: supports only 2/3/4 players. 5/6-player options in the original repo route to the online "no internet" screen (true 5-6 player Ludo needs a hexagonal board = full rewrite, not in this codebase).
+## Architecture note (game split) — UPDATED June 2026
+User decision: 5/6 player mode must live INSIDE the Android app, not in Expo.
+- 2/3/4 players → existing native Android app (MainActivity), classic 4-quadrant board.
+- 5/6 players → NEW native Android hexagonal board (HexActivity), same theme/sounds/dice/piece art.
+- Expo app = Admin panel (the Expo hex game stays as a web/preview copy only).
+- All write the same matches/{code} schema to Firebase, so ONE admin panel controls everything.
+
+## Android 5/6 player hexagonal game (new files)
+- `HexEngine.java` — pure logic: 6 sides × 8 = 48-cell ring, startCell(seat)=seat*8+4,
+  5-cell home column, FINISH=53, 4 tokens, safe = 6 starts + 6 corner stars, 3×6 forfeits.
+  Verified with 400 simulated bot games (all complete, correct ranks).
+- `HexBoardView.java` — canvas board: white plate + dark grid lines + classic palette
+  (blue #29ABE2, red #ED2224, green #0EA24E, yellow #FFD90F, orange #F7941E, purple #8E44AD),
+  6 tinted sectors, colored start cells, star safe cells, home columns, centre rosette,
+  6 outer base yards, real piece PNGs as tokens, tap-to-move hit testing.
+- `HexActivity.java` + `res/layout/activity_hex.xml` — dice (dice1..6 art + roll animation),
+  turn banner, player chips with live rank, bots (800ms), result overlay, game sounds,
+  RemoteControl/Firebase admin control with the same subtle manipulation + 6-cap.
+- `HomeActivity`: 5P/6P Play button now starts HexActivity (was "No Internet"); passes
+  names, bot flags and the same colour order shown on the setup screen.
+- Colour order — 5P: blue, orange, green, red, yellow | 6P: blue, yellow, purple, red, green, orange.
+- Build fix: removed all `switch (view.getId()) { case R.id... }` (AGP 8 non-final res ids →
+  "constant expression required") + `android.nonFinalResIds=false` in gradle.properties.
+
+## Hex engine constants (src/game/engine.ts)
+6 sides × 8 cells = 48-cell ring, 5-cell home column, finish=53 progress, 4 tokens/player.
+Safe cells: 6 starts + 6 mid-side stars. 3 consecutive 6s forfeits turn.
 
 ## Backlog
 - P1: Verify Android game end-to-end after user builds APK in Android Studio

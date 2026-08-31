@@ -27,6 +27,8 @@ export const LUDO_COLORS: Record<string, string> = {
   green: C.ludoGreen,
   yellow: C.ludoYellow,
   blue: C.ludoBlue,
+  purple: "#A78BFA",
+  orange: "#FB923C",
 };
 
 export const F = {

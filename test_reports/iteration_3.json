@@ -1,0 +1,23 @@
+{
+  "summary": "All 10 requested flows for the new hexagonal 5/6-player Ludo game PASSED. Launcher '/' renders launcher-screen with launch-play-button and launch-admin-button. launch-admin-button navigates to live-matches-screen showing CONNECTED pill and the new HEXA 5/6 · 6 PLAYERS card. Setup: count-6 reveals seat-0..seat-5; count-5 correctly hides seat-5; every seat-bot-i toggles Human<->Bot. start-game-button navigates to game-screen with #{6-digit code}, turn-banner, hexagonal SVG board, 6 player chips and roll-dice-button. Firebase writes verified: match created with status=live, nop=6, gametype=5, all six colors (blue/yellow/purple/red/green/orange) with correct order fields. Bots auto-play at ~750ms: recentRolls populated with 14 dice values (all 1-6), currentTurn rotated through all 6 colors. Admin panel simultaneously shows the new match in Live list with 6 player pills. Admin manipulation verified via curl PUT /matches/{code}/control/force/blue=6 -> consumed by engine within 1s and blue rolled 6 (proving engine reads control). Human play (count-5, all humans): roll-dice-button enabled on human turn, tapping wrote lastRoll and recentRolls to Firebase and rotated currentTurn through blue->yellow->purple->red->green; no token became movable in 6 rolls (statistically valid - no 6 rolled, tokens stayed in base). game-exit (X) returns to launcher and sets status=abandoned+finishedAt. No red-screen crash, no runtime console errors observed. Only benign warning: 'props.pointerEvents is deprecated' from a 3rd-party lib (not app code).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_3.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: game.tsx line 425 shows '🎲' emoji whenever snap.dice is null. After a bot rolls and no movable token exists, engine advances turn and resets dice to null, so the header dice never lingers on the numeric value long enough to be visible (~few ms). Firebase lastRoll is authoritative and correct. Consider retaining the last-shown value for ~300ms for UX polish (non-blocking).",
+    "Minor: game.tsx creates match in an effect that also runs the cleanup which writes status='abandoned'. In React StrictMode/web fast-refresh this could double-write. Not observed in production but a ref guard around the create would harden it."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped as requested)", "frontend": "100% (10/10 scenarios)"},
+  "seed_data_creation": "Created and cleaned up: matches/205944 (bot game for force-dice test), matches/859572 (5-human game), matches/402976 (initial bot game). All deleted from Firebase via DELETE. Match 715754 (from first bot flow) was left in status=abandoned; not deleted but harmless.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Firebase RTDB is publicly writable at https://ludoking-anondo-default-rtdb.asia-southeast1.firebasedatabase.app - use curl on /matches/{code}.json for verification. Match 482913 (classic 4-player, gametype=1) is the demo/seed and must remain untouched. Newly created matches have random 6-digit codes; discover via GET /matches.json and filter gametype==5 && status=='live'. Bots roll every ~750ms so wait 10-15s to see meaningful recentRolls. Force-dice manipulation is consumed within ~1s of the target color's next turn. Key testIDs: launcher-screen, launch-play-button, launch-admin-button, live-matches-screen, firebase-connection-status, count-5, count-6, seat-0..seat-5, seat-bot-0..seat-bot-5, seat-name-0..seat-name-5, start-game-button, setup-back, game-screen, game-exit, turn-banner, roll-dice-button, token-{color}-{id}, game-over-overlay, overlay-home.",
+  "rca_of_issue": "N/A - no defects found. Feature works end-to-end (launcher -> setup -> game -> bots -> Firebase -> admin live view -> control manipulation -> engine consumption -> abandon on exit)."
+}
