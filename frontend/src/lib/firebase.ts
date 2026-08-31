@@ -27,8 +27,7 @@ export interface DiceRoll {
 }
 
 export interface MatchControl {
-  rank1?: string;
-  rank2?: string;
+  ranks?: Record<string, number>;
   force?: Record<string, number>;
 }
 

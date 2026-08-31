@@ -39,6 +39,12 @@ winners{pos:{color,name}}, control{rank1,rank2,force{color:0-6}}
 - [x] Android game wired to Firebase (REST) with subtle dice manipulation — needs real-device build to verify
 - [x] Admin panel: live dashboard, match control, history — fully tested (iteration_1.json, 7/7 pass)
 - [x] Fonts Barlow Condensed + DM Sans, dark theme per design_guidelines.json
+- [x] Android Gradle upgraded (Gradle 8.7 / AGP 8.3.2 / compileSdk 34 / Java 17 / namespace) to build on JDK 21
+- [x] Manipulation reworked to be fully NATURAL: subtle luck bias via best/worst-of-two natural rolls (favored 32%/20% nudge, last-place 22% down-nudge, mids untouched) + hard cap of max 2 consecutive 6s per color (kills the abnormal 8/9-six streak). No optimal-move solver anymore.
+- [x] Admin can now set a unique finishing POSITION (1st..Nth) for EVERY player, not just 1st/2nd. control/ranks/{color}=pos. Tested iteration_2 (9/9 pass).
+
+## Known Limitations
+- Board is classic 4-quadrant: supports only 2/3/4 players. 5/6-player options in the original repo route to the online "no internet" screen (true 5-6 player Ludo needs a hexagonal board = full rewrite, not in this codebase).
 
 ## Backlog
 - P1: Verify Android game end-to-end after user builds APK in Android Studio

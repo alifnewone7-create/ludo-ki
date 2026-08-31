@@ -28,13 +28,19 @@ function haptic(style: "light" | "medium" | "heavy") {
   Haptics.impactAsync(map[style]);
 }
 
+function ordinal(n: number): string {
+  if (n === 1) return "1ST";
+  if (n === 2) return "2ND";
+  if (n === 3) return "3RD";
+  return `${n}TH`;
+}
+
 export default function MatchControlScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [match, setMatch] = useState<Match | null | undefined>(undefined);
-  const [rank1, setRank1] = useState<string>("");
-  const [rank2, setRank2] = useState<string>("");
+  const [ranks, setRanks] = useState<Record<string, number>>({});
   const [synced, setSynced] = useState(false);
   const [toast, setToast] = useState("");
 
@@ -43,8 +49,7 @@ export default function MatchControlScreen() {
       const val = snap.val();
       setMatch(val || null);
       if (val && !synced) {
-        setRank1(val.control?.rank1 || "");
-        setRank2(val.control?.rank2 || "");
+        setRanks(val.control?.ranks || {});
         setSynced(true);
       }
     });
@@ -54,24 +59,40 @@ export default function MatchControlScreen() {
 
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(""), 2200);
+    setTimeout(() => setToast(""), 2400);
+  };
+
+  // Toggle a finishing position for a color. A position is unique across players.
+  const togglePosition = (color: string, pos: number) => {
+    haptic("light");
+    setRanks((prev) => {
+      const next: Record<string, number> = { ...prev };
+      if (next[color] === pos) {
+        delete next[color];
+        return next;
+      }
+      // remove this position from any other player who had it
+      for (const c of Object.keys(next)) {
+        if (next[c] === pos) delete next[c];
+      }
+      next[color] = pos;
+      return next;
+    });
   };
 
   const applyManipulation = async () => {
     haptic("medium");
     await update(ref(db, `matches/${id}/control`), {
-      rank1: rank1 || "",
-      rank2: rank2 || "",
+      ranks: Object.keys(ranks).length ? ranks : null,
     });
-    showToast("Manipulation applied — dice will now favor the targets");
+    showToast("Applied — dice quietly favor your picks, game stays natural");
   };
 
   const clearManipulation = async () => {
     haptic("heavy");
-    setRank1("");
-    setRank2("");
+    setRanks({});
     await remove(ref(db, `matches/${id}/control`));
-    showToast("Manipulation cleared — game is fully natural");
+    showToast("Cleared — game is 100% natural now");
   };
 
   const forceDice = async (color: string, v: number) => {
@@ -272,57 +293,47 @@ export default function MatchControlScreen() {
         {/* Manipulation */}
         {isLive && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>SET MATCH OUTCOME</Text>
+            <Text style={styles.sectionTitle}>SET FINISHING ORDER</Text>
             <Text style={styles.hintText}>
-              Dice quietly favor the selected players — game looks 100% natural.
+              যেই প্লেয়ারকে যত নম্বরে জেতাতে চান সেটা বেছে দিন। Dice গোপনে সামান্য
+              favor করবে — বেশি ভালো/খারাপ চাল পড়বে না, একদম normal game-এর মতো।
             </Text>
-            <Text style={styles.rankLabel}>1ST PLACE (WINNER)</Text>
-            <View style={styles.chipRow}>
+            <View style={{ gap: SP.md }}>
               {players.map(([color, p]) => (
-                <Pressable
-                  key={color}
-                  testID={`rank1-chip-${color}`}
-                  onPress={() => {
-                    haptic("light");
-                    setRank1(rank1 === color ? "" : color);
-                    if (rank2 === color) setRank2("");
-                  }}
-                  style={[
-                    styles.rankChip,
-                    rank1 === color && {
-                      borderColor: LUDO_COLORS[color],
-                      backgroundColor: `${LUDO_COLORS[color]}22`,
-                    },
-                  ]}
-                >
-                  <View style={[styles.dot, { backgroundColor: LUDO_COLORS[color] }]} />
-                  <Text style={styles.chipText}>{p.name}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Text style={styles.rankLabel}>2ND PLACE</Text>
-            <View style={styles.chipRow}>
-              {players.map(([color, p]) => (
-                <Pressable
-                  key={color}
-                  testID={`rank2-chip-${color}`}
-                  disabled={rank1 === color}
-                  onPress={() => {
-                    haptic("light");
-                    setRank2(rank2 === color ? "" : color);
-                  }}
-                  style={[
-                    styles.rankChip,
-                    rank1 === color && { opacity: 0.3 },
-                    rank2 === color && {
-                      borderColor: LUDO_COLORS[color],
-                      backgroundColor: `${LUDO_COLORS[color]}22`,
-                    },
-                  ]}
-                >
-                  <View style={[styles.dot, { backgroundColor: LUDO_COLORS[color] }]} />
-                  <Text style={styles.chipText}>{p.name}</Text>
-                </Pressable>
+                <View key={color} style={styles.rankPlayerRow}>
+                  <View style={styles.rankPlayerId}>
+                    <View
+                      style={[styles.dotLg, { backgroundColor: LUDO_COLORS[color] }]}
+                    />
+                    <Text style={styles.playerName} numberOfLines={1}>
+                      {p.name}
+                    </Text>
+                  </View>
+                  <View style={styles.posRow}>
+                    {Array.from({ length: match.nop }, (_, i) => i + 1).map(
+                      (pos) => {
+                        const active = ranks[color] === pos;
+                        return (
+                          <Pressable
+                            key={pos}
+                            testID={`rank-${color}-${pos}`}
+                            onPress={() => togglePosition(color, pos)}
+                            style={[styles.posBtn, active && styles.posBtnActive]}
+                          >
+                            <Text
+                              style={[
+                                styles.posBtnText,
+                                active && { color: C.onBrandPrimary },
+                              ]}
+                            >
+                              {ordinal(pos)}
+                            </Text>
+                          </Pressable>
+                        );
+                      }
+                    )}
+                  </View>
+                </View>
               ))}
             </View>
           </View>
@@ -349,11 +360,14 @@ export default function MatchControlScreen() {
           <Pressable
             testID="apply-manipulation-button"
             onPress={applyManipulation}
-            disabled={!rank1 && !rank2}
-            style={[styles.applyBtn, !rank1 && !rank2 && { opacity: 0.4 }]}
+            disabled={Object.keys(ranks).length === 0}
+            style={[
+              styles.applyBtn,
+              Object.keys(ranks).length === 0 && { opacity: 0.4 },
+            ]}
           >
             <Ionicons name="flash" size={16} color={C.onBrandPrimary} />
-            <Text style={styles.applyBtnText}>APPLY MANIPULATION</Text>
+            <Text style={styles.applyBtnText}>APPLY</Text>
           </Pressable>
         </View>
       )}
@@ -450,21 +464,21 @@ const styles = StyleSheet.create({
   },
   diceBtnActive: { backgroundColor: C.brandPrimary, borderColor: C.brandPrimary },
   diceBtnText: { fontFamily: F.displaySemi, fontSize: 17, color: C.onSurfaceSecondary },
-  rankLabel: { fontFamily: F.text, fontSize: 10, color: C.onSurfaceTertiary, letterSpacing: 1.5 },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: SP.sm },
-  rankChip: {
-    flexShrink: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    height: 36,
-    paddingHorizontal: SP.md,
-    borderRadius: R.pill,
+  rankPlayerRow: { gap: SP.sm },
+  rankPlayerId: { flexDirection: "row", alignItems: "center", gap: SP.sm },
+  posRow: { flexDirection: "row", gap: SP.sm },
+  posBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: R.sm,
     borderWidth: 1,
     borderColor: C.borderStrong,
-    backgroundColor: C.surfaceTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: C.surfaceSecondary,
   },
-  chipText: { fontFamily: F.text, fontSize: 12, color: C.onSurface },
+  posBtnActive: { backgroundColor: C.brandPrimary, borderColor: C.brandPrimary },
+  posBtnText: { fontFamily: F.displaySemi, fontSize: 13, color: C.onSurfaceSecondary, letterSpacing: 0.5 },
   winnerRow: { flexDirection: "row", alignItems: "center", gap: SP.sm },
   winnerRank: { fontFamily: F.displaySemi, fontSize: 15, color: C.warning, width: 64 },
   winnerName: { fontFamily: F.text, fontSize: 14, color: C.onSurface },

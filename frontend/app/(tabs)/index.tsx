@@ -118,12 +118,15 @@ export default function LiveMatchesScreen() {
                   </View>
                 ))}
               </View>
-              {(item.control?.rank1 || item.control?.rank2) && (
+              {(item.control?.ranks &&
+                Object.keys(item.control.ranks).length > 0) ||
+              (item.control?.force &&
+                Object.values(item.control.force).some((v) => v > 0)) ? (
                 <View style={styles.rigBadge}>
                   <Ionicons name="flash" size={11} color={C.onBrandTertiary} />
                   <Text style={styles.rigText}>MANIPULATION ACTIVE</Text>
                 </View>
-              )}
+              ) : null}
             </Pressable>
           )}
         />
